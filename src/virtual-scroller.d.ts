@@ -10,6 +10,15 @@ export interface VirtualScrollerItemRenderEvent extends CustomEvent {
   };
 }
 
+export interface VirtualScrollerRangeChangeEvent extends CustomEvent {
+  detail: {
+    startIndex: number;
+    endIndex: number;
+    visibleCount: number;
+    totalCount: number;
+  };
+}
+
 export interface VisibleRange {
   startIndex: number;
   endIndex: number;
@@ -124,6 +133,15 @@ export declare class VirtualScroller extends HTMLElement {
   addEventListener(
     type: 'itemrender',
     listener: (event: VirtualScrollerItemRenderEvent) => void,
+    options?: boolean | AddEventListenerOptions
+  ): void;
+
+  /**
+   * Event listener for range change events (emitted when visible range changes)
+   */
+  addEventListener(
+    type: 'rangechange',
+    listener: (event: VirtualScrollerRangeChangeEvent) => void,
     options?: boolean | AddEventListenerOptions
   ): void;
 

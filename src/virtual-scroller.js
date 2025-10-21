@@ -31,6 +31,9 @@ class VirtualScroller extends HTMLElement {
     this.scrollTop = 0;
     this.containerHeight = 0;
 
+    // Track previous range for change detection
+    this.previousRange = { startIndex: -1, endIndex: -1 };
+
     // ResizeObserver to track item height changes
     this.resizeObserver = new ResizeObserver(entries => {
       this.handleResize(entries);
@@ -171,6 +174,7 @@ class VirtualScroller extends HTMLElement {
     this.items = items;
     this.itemHeights.clear();
     this.renderedElements.clear();
+    this.previousRange = { startIndex: -1, endIndex: -1 };
     this.requestUpdate();
   }
 
@@ -292,6 +296,19 @@ class VirtualScroller extends HTMLElement {
     // Calculate visible range
     const startIndex = this.findStartIndex();
     const endIndex = this.findEndIndex(startIndex);
+
+    // Emit rangechange event if range has changed
+    if (startIndex !== this.previousRange.startIndex || endIndex !== this.previousRange.endIndex) {
+      this.previousRange = { startIndex, endIndex };
+      this.dispatchEvent(new CustomEvent('rangechange', {
+        detail: {
+          startIndex,
+          endIndex,
+          visibleCount: endIndex - startIndex + 1,
+          totalCount: this.items.length
+        }
+      }));
+    }
 
     // Track which items should be rendered
     const newRendered = new Set();
