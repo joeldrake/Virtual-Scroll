@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Scroller Demo - Dynamisk Höjd</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .description {
+      color: #666;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .demo-section {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .demo-section h2 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 1.3em;
+    }
+
+    virtual-scroller {
+      height: 500px;
+      border: 2px solid #e0e0e0;
+      border-radius: 4px;
+      background: white;
+    }
+
+    .item {
+      padding: 15px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background-color 0.2s;
+    }
+
+    .item:hover {
+      background-color: #f8f9fa;
+    }
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .item-title {
+      font-weight: 600;
+      color: #2c3e50;
+      font-size: 1.1em;
+    }
+
+    .item-index {
+      background: #3498db;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85em;
+      font-weight: 500;
+    }
+
+    .item-content {
+      color: #555;
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+
+    .item-meta {
+      color: #999;
+      font-size: 0.85em;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background: #2980b9;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    input[type="number"] {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      width: 100px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      margin-top: 15px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 4px;
+    }
+
+    .stat {
+      flex: 1;
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 0.85em;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      color: #2c3e50;
+      font-size: 1.4em;
+      font-weight: 600;
+    }
+
+    .code-example {
+      background: #2c3e50;
+      color: #ecf0f1;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin-top: 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Virtual Scroller - Demo</h1>
+    <p class="description">
+      En högpresterande virtual scroller web component som klarar av items med dynamisk höjd.
+      Endast synliga element renderas, vilket gör att även listor med tusentals items scrollar smidigt.
+    </p>
+
+    <!-- Demo 1: Basic Usage -->
+    <div class="demo-section">
+      <h2>1. Grundläggande användning med dynamisk höjd</h2>
+      <p style="color: #666; margin-bottom: 15px;">
+        Items har varierande textlängder och därmed olika höjder. Scrollern anpassar sig automatiskt.
+      </p>
+
+      <div class="controls">
+        <button onclick="demo1.scrollToRandom()">Scrolla till slumpmässigt item</button>
+        <button onclick="demo1.scrollToTop()">Scrolla till toppen</button>
+        <button onclick="demo1.scrollToBottom()">Scrolla till botten</button>
+        <input type="number" id="scrollToIndex1" placeholder="Index" min="0" max="999">
+        <button onclick="demo1.scrollToIndex(document.getElementById('scrollToIndex1').value)">Gå till index</button>
+      </div>
+
+      <virtual-scroller id="scroller1" item-height="100" overscan="5">
+        <template>
+          <div class="item">
+            <div class="item-header">
+              <div class="item-title">{{data.title}}</div>
+              <div class="item-index">#{{index}}</div>
+            </div>
+            <div class="item-content">{{data.description}}</div>
+            <div class="item-meta">{{data.meta}}</div>
+          </div>
+        </template>
+      </virtual-scroller>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Totalt antal items</div>
+          <div class="stat-value" id="stats1-total">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Renderade items</div>
+          <div class="stat-value" id="stats1-rendered">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Synligt intervall</div>
+          <div class="stat-value" id="stats1-range">-</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo 2: Many Items -->
+    <div class="demo-section">
+      <h2>2. Stor datamängd (10,000 items)</h2>
+      <p style="color: #666; margin-bottom: 15px;">
+        Testa prestandan med tusentals items. Notera hur snabbt scrollningen fortfarande är!
+      </p>
+
+      <div class="controls">
+        <button onclick="demo2.scrollToRandom()">Scrolla till slumpmässigt item</button>
+        <button onclick="demo2.scrollToMiddle()">Scrolla till mitten</button>
+        <input type="number" id="scrollToIndex2" placeholder="Index" min="0" max="9999">
+        <button onclick="demo2.scrollToIndex(document.getElementById('scrollToIndex2').value)">Gå till index</button>
+      </div>
+
+      <virtual-scroller id="scroller2" item-height="80" overscan="3">
+        <template>
+          <div class="item">
+            <div class="item-header">
+              <div class="item-title">{{data.title}}</div>
+              <div class="item-index">#{{index}}</div>
+            </div>
+            <div class="item-content">{{data.description}}</div>
+          </div>
+        </template>
+      </virtual-scroller>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Totalt antal items</div>
+          <div class="stat-value" id="stats2-total">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Renderade items</div>
+          <div class="stat-value" id="stats2-rendered">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Prestanda</div>
+          <div class="stat-value">~60 FPS</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Code Example -->
+    <div class="demo-section">
+      <h2>3. Användningsexempel</h2>
+      <div class="code-example">
+&lt;!-- HTML --&gt;
+&lt;virtual-scroller id="myScroller" item-height="100" overscan="5"&gt;
+  &lt;template&gt;
+    &lt;div class="item"&gt;
+      &lt;h3&gt;{{data.title}}&lt;/h3&gt;
+      &lt;p&gt;{{data.description}}&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/template&gt;
+&lt;/virtual-scroller&gt;
+
+&lt;script type="module"&gt;
+import VirtualScroller from './src/virtual-scroller.js';
+
+const scroller = document.getElementById('myScroller');
+
+// Sätt data
+const items = Array.from({ length: 1000 }, (_, i) =&gt; ({
+  title: `Item ${i}`,
+  description: `Description for item ${i}`
+}));
+
+scroller.setItems(items);
+
+// Scrolla till ett specifikt index
+scroller.scrollToIndex(500);
+
+// Lyssna på render-events
+scroller.addEventListener('itemrender', (e) =&gt; {
+  console.log('Item rendered:', e.detail);
+});
+&lt;/script&gt;
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import VirtualScroller from '../src/virtual-scroller.js';
+
+    // Demo 1: Basic usage with varying heights
+    const scroller1 = document.getElementById('scroller1');
+    const texts = [
+      'Kort text.',
+      'Lite längre text som tar upp mer utrymme och gör att detta item blir högre än de andra.',
+      'Medellång beskrivning som innehåller lite mer information.',
+      'En extremt lång text som verkligen testar den dynamiska höjd-funktionaliteten. Detta item kommer att vara betydligt högre än de andra och scrollern måste anpassa sig till detta. ResizeObserver kommer att detektera höjden och uppdatera scrollpositionen korrekt.',
+      'Kort.',
+      'Lagom lång text som ger en bra balans mellan korthet och innehåll.',
+    ];
+
+    const items1 = Array.from({ length: 1000 }, (_, i) => ({
+      title: `Artikel ${i + 1}`,
+      description: texts[i % texts.length],
+      meta: `Skapad ${new Date(2024, 0, (i % 28) + 1).toLocaleDateString('sv-SE')}`
+    }));
+
+    scroller1.setItems(items1);
+
+    window.demo1 = {
+      scrollToRandom() {
+        const index = Math.floor(Math.random() * items1.length);
+        scroller1.scrollToIndex(index);
+      },
+      scrollToTop() {
+        scroller1.scrollToIndex(0);
+      },
+      scrollToBottom() {
+        scroller1.scrollToIndex(items1.length - 1);
+      },
+      scrollToIndex(index) {
+        const idx = parseInt(index);
+        if (!isNaN(idx) && idx >= 0 && idx < items1.length) {
+          scroller1.scrollToIndex(idx);
+        }
+      }
+    };
+
+    // Update stats for demo 1
+    scroller1.addEventListener('scroll', () => {
+      updateStats1();
+    });
+
+    function updateStats1() {
+      document.getElementById('stats1-total').textContent = items1.length.toLocaleString('sv-SE');
+      const range = scroller1.getVisibleRange();
+      document.getElementById('stats1-rendered').textContent =
+        (range.endIndex - range.startIndex + 1).toLocaleString('sv-SE');
+      document.getElementById('stats1-range').textContent =
+        `${range.startIndex} - ${range.endIndex}`;
+    }
+
+    updateStats1();
+
+    // Demo 2: Large dataset
+    const scroller2 = document.getElementById('scroller2');
+    const items2 = Array.from({ length: 10000 }, (_, i) => ({
+      title: `Item nummer ${i + 1}`,
+      description: i % 3 === 0
+        ? 'Kort beskrivning.'
+        : i % 3 === 1
+        ? 'Medellång beskrivning med lite mer innehåll som gör att detta item blir något högre.'
+        : 'Längre beskrivning som innehåller mer text och information, vilket resulterar i ett item med större höjd än genomsnittet.'
+    }));
+
+    scroller2.setItems(items2);
+
+    window.demo2 = {
+      scrollToRandom() {
+        const index = Math.floor(Math.random() * items2.length);
+        scroller2.scrollToIndex(index);
+      },
+      scrollToMiddle() {
+        scroller2.scrollToIndex(Math.floor(items2.length / 2));
+      },
+      scrollToIndex(index) {
+        const idx = parseInt(index);
+        if (!isNaN(idx) && idx >= 0 && idx < items2.length) {
+          scroller2.scrollToIndex(idx);
+        }
+      }
+    };
+
+    // Update stats for demo 2
+    scroller2.addEventListener('scroll', () => {
+      updateStats2();
+    });
+
+    function updateStats2() {
+      document.getElementById('stats2-total').textContent = items2.length.toLocaleString('sv-SE');
+      const range = scroller2.getVisibleRange();
+      document.getElementById('stats2-rendered').textContent =
+        (range.endIndex - range.startIndex + 1).toLocaleString('sv-SE');
+    }
+
+    updateStats2();
+  </script>
+</body>
+</html>
