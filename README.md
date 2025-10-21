@@ -11,7 +11,7 @@ En högpresterande virtual scrolling web component som klarar av items med **dyn
 - **Template-baserad** - Flexibel rendering med HTML templates
 - **TypeScript support** - Inkluderar type definitions
 - **Konfigurerbar overscan** - Rendera extra items för smidigare scrolling
-- **Event-driven** - Lyssna på render-events för anpassad logik
+- **Event-driven** - Events för item-rendering och range-ändringar
 
 ## Installation
 
@@ -131,6 +131,28 @@ scroller.addEventListener('itemrender', (event) => {
   // Anpassa element vid behov
   if (data.highlighted) {
     element.classList.add('highlight');
+  }
+});
+```
+
+#### `rangechange`
+Triggas när den renderade index-rangen ändras (vid scrollning).
+
+**Event detail properties:**
+- `startIndex` - Första synliga item-index
+- `endIndex` - Sista synliga item-index
+- `visibleCount` - Antal items som renderas
+- `totalCount` - Totalt antal items
+
+```javascript
+scroller.addEventListener('rangechange', (event) => {
+  const { startIndex, endIndex, visibleCount, totalCount } = event.detail;
+  console.log(`Visar items ${startIndex}-${endIndex} (${visibleCount} av ${totalCount})`);
+
+  // Användningsfall: Lazy loading av data
+  // Ladda fler items när användaren närmar sig slutet
+  if (endIndex > totalCount - 20) {
+    loadMoreItems();
   }
 });
 ```

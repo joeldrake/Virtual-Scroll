@@ -264,9 +264,40 @@
       </div>
     </div>
 
+    <!-- Demo 3: RangeChange Event -->
+    <div class="demo-section">
+      <h2>3. RangeChange Event</h2>
+      <p style="color: #666; margin-bottom: 15px;">
+        <code>rangechange</code> eventet emitteras när den renderade index-rangen ändras. Detta är användbart för att ladda data dynamiskt eller uppdatera UI baserat på vad som är synligt.
+      </p>
+
+      <div class="controls">
+        <button onclick="demo3.scrollToRandom()">Scrolla (trigga event)</button>
+        <button onclick="demo3.clearLog()">Rensa logg</button>
+      </div>
+
+      <virtual-scroller id="scroller3" item-height="60" overscan="2" style="height: 300px;">
+        <template>
+          <div class="item">
+            <div class="item-header">
+              <div class="item-title">{{data.title}}</div>
+              <div class="item-index">#{{index}}</div>
+            </div>
+          </div>
+        </template>
+      </virtual-scroller>
+
+      <div style="margin-top: 15px;">
+        <h3 style="color: #333; font-size: 1.1em; margin-bottom: 10px;">Event Log (senaste 10):</h3>
+        <div id="event-log" style="background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.85em; max-height: 200px; overflow-y: auto; line-height: 1.6;">
+          <div style="color: #95a5a6;">Väntar på events...</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Code Example -->
     <div class="demo-section">
-      <h2>3. Användningsexempel</h2>
+      <h2>4. Användningsexempel</h2>
       <div class="code-example">
 &lt;!-- HTML --&gt;
 &lt;virtual-scroller id="myScroller" item-height="100" overscan="5"&gt;
@@ -297,6 +328,12 @@ scroller.scrollToIndex(500);
 // Lyssna på render-events
 scroller.addEventListener('itemrender', (e) =&gt; {
   console.log('Item rendered:', e.detail);
+});
+
+// Lyssna på range change events
+scroller.addEventListener('rangechange', (e) =&gt; {
+  const { startIndex, endIndex, visibleCount, totalCount } = e.detail;
+  console.log(`Visar items ${startIndex}-${endIndex} (${visibleCount} av ${totalCount})`);
 });
 &lt;/script&gt;
       </div>
@@ -402,6 +439,56 @@ scroller.addEventListener('itemrender', (e) =&gt; {
     }
 
     updateStats2();
+
+    // Demo 3: RangeChange Event
+    const scroller3 = document.getElementById('scroller3');
+    const items3 = Array.from({ length: 500 }, (_, i) => ({
+      title: `Item ${i + 1}`
+    }));
+
+    scroller3.setItems(items3);
+
+    const eventLog = document.getElementById('event-log');
+    const maxLogEntries = 10;
+    let logEntries = [];
+
+    scroller3.addEventListener('rangechange', (event) => {
+      const { startIndex, endIndex, visibleCount, totalCount } = event.detail;
+      const timestamp = new Date().toLocaleTimeString('sv-SE');
+
+      const logEntry = `[${timestamp}] Range: ${startIndex}-${endIndex} | Synliga: ${visibleCount} | Totalt: ${totalCount}`;
+
+      logEntries.unshift(logEntry);
+      if (logEntries.length > maxLogEntries) {
+        logEntries = logEntries.slice(0, maxLogEntries);
+      }
+
+      updateEventLog();
+    });
+
+    function updateEventLog() {
+      if (logEntries.length === 0) {
+        eventLog.innerHTML = '<div style="color: #95a5a6;">Väntar på events...</div>';
+      } else {
+        eventLog.innerHTML = logEntries
+          .map((entry, index) => {
+            const color = index === 0 ? '#3498db' : '#ecf0f1';
+            return `<div style="color: ${color};">${entry}</div>`;
+          })
+          .join('');
+      }
+    }
+
+    window.demo3 = {
+      scrollToRandom() {
+        const index = Math.floor(Math.random() * items3.length);
+        scroller3.scrollToIndex(index);
+      },
+      clearLog() {
+        logEntries = [];
+        updateEventLog();
+      }
+    };
   </script>
 </body>
 </html>
